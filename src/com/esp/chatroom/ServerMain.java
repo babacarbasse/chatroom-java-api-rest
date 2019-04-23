@@ -14,13 +14,13 @@ import org.json.JSONObject;
 public class ServerMain {
 	
     private ChatRoomUser roomUser = null;
-    Properties prop;
+    Properties props;
     
     public ServerMain() throws IOException {
     	try {
 			ConfigPropertyValue properties = new ConfigPropertyValue();
-			this.prop = properties.getPropValues();
-    		Remote r = Naming.lookup(prop.getProperty("namingUserRmi"));
+			this.props = properties.getPropValues();
+    		Remote r = Naming.lookup(props.getProperty("service-users_uri"));
 			this.roomUser = (ChatRoomUser)r;
     	} catch (MalformedURLException e) {
 			System.out.println("Error");
@@ -41,19 +41,20 @@ public class ServerMain {
 		JSONObject payload = new JSONObject(data);
 		ArrayList<String> online_users = this.roomUser.subscribe(payload.get("user").toString());
 		jsonObject.put("online_users", online_users);
-		String result = "" + jsonObject;
-		return Response.status(200).entity(result).build();
+		String response = "" + jsonObject;
+		return Response.status(200).entity(response).build();
 	}
 	
 	@DELETE
-	@Path("unsubscribe")
+	@Path("subscribe")
 	@Produces("application/json")
-	public Response unSubscribeUser() throws JSONException {
+	public Response unSubscribeUser(String data) throws RemoteException {
 		JSONObject jsonObject = new JSONObject();
-		jsonObject.put("ok", "");
- 
-		String result = "" + jsonObject;
-		return Response.status(200).entity(result).build();
+		JSONObject payload = new JSONObject(data);
+		this.roomUser.unsubscribe(payload.get("user").toString());
+		jsonObject.put("status", "success");
+		String response = "" + jsonObject;
+		return Response.status(200).entity(response).build();
 	}
 	
 	@POST
